@@ -121,6 +121,7 @@ function ElementStyle(aElement, aStore, aPageStyle)
   this.element = aElement;
   this.store = aStore || {};
   this.pageStyle = aPageStyle;
+  this.rules = [];
 
   // We don't want to overwrite this.store.userProperties so we only create it
   // if it doesn't already exist.
@@ -192,8 +193,9 @@ ElementStyle.prototype = {
       // Make sure the dummy element has been created before continuing...
       return this.dummyElementPromise.then(() => {
         if (this.populated != populated) {
-          // Don't care anymore.
-          return promise.reject("unused");
+          // The currently selected element was changed before the dummy
+          // element promise completed, no need to go any further
+          return;
         }
 
         // Store the current list of rules (if any) during the population
@@ -1358,9 +1360,11 @@ CssRuleView.prototype = {
 
     this._elementStyle = new ElementStyle(aElement, this.store, this.pageStyle);
     return this._populate().then(() => {
-      this._elementStyle.onChanged = () => {
-        this._changed();
-      };
+      if (this._elementStyle) {
+        this._elementStyle.onChanged = () => {
+          this._changed();
+        };
+      }
     }).then(null, console.error);
   },
 
@@ -1384,7 +1388,7 @@ CssRuleView.prototype = {
     let elementStyle = this._elementStyle;
     return this._elementStyle.populate().then(() => {
       if (this._elementStyle != elementStyle) {
-        return promise.reject("element changed");
+        return;
       }
       this._createEditors();
 
@@ -1392,7 +1396,7 @@ CssRuleView.prototype = {
       var evt = this.doc.createEvent("Events");
       evt.initEvent("CssRuleViewRefreshed", true, false);
       this.element.dispatchEvent(evt);
-      return undefined;
+      return;
     }).then(null, promiseWarn);
   },
 

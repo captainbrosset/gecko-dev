@@ -26,6 +26,8 @@ FontInspector.prototype = {
     if (this.inspector.highlighter) {
       this.inspector.highlighter.on("locked", this.onHighlighterLocked);
     }
+    this.inspector.pageStyle.on("stylesheet-added", this.update);
+    this.inspector.pageStyle.on("stylesheet-removed", this.update);
     this.update();
   },
 
@@ -46,6 +48,10 @@ FontInspector.prototype = {
     this.inspector.selection.off("new-node", this.onNewNode);
     if (this.inspector.highlighter) {
       this.inspector.highlighter.off("locked", this.onHighlighterLocked);
+    }
+    if (this.inspector.pageStyle) {
+      this.inspector.pageStyle.off("stylesheet-added", this.update);
+      this.inspector.pageStyle.off("stylesheet-removed", this.update);
     }
   },
 
@@ -118,6 +124,8 @@ FontInspector.prototype = {
     for (let f of fontsArray) {
       this.render(f, contentDocument);
     }
+
+    this.inspector.emit("font-inspector-updated");
   },
 
   /**

@@ -23,25 +23,29 @@ function simpleInherit(aInspector, aRuleView)
   let styleNode = addStyle(doc, style);
   doc.body.innerHTML = '<div id="test2"><div id="test1">Styled Node</div></div>';
 
-  inspector.selection.setNode(doc.getElementById("test1"));
-  inspector.once("inspector-updated", () => {
-    let elementStyle = view._elementStyle;
+  inspector.once("rule-view-refreshed", () => {
+    inspector.selection.setNode(doc.getElementById("test1"));
+    inspector.once("inspector-updated", () => {
+      let elementStyle = view._elementStyle;
 
-    is(elementStyle.rules.length, 2, "Should have 2 rules.");
+      is(elementStyle.rules.length, 2, "Should have 2 rules.");
 
-    let elementRule = elementStyle.rules[0];
-    ok(!elementRule.inherited, "Element style attribute should not consider itself inherited.");
+      let elementRule = elementStyle.rules[0];
+      ok(!elementRule.inherited, "Element style attribute should not consider itself inherited.");
 
-    let inheritRule = elementStyle.rules[1];
-    is(inheritRule.selectorText, "#test2", "Inherited rule should be the one that includes inheritable properties.");
-    ok(!!inheritRule.inherited, "Rule should consider itself inherited.");
-    is(inheritRule.textProps.length, 1, "Should only display one inherited style");
-    let inheritProp = inheritRule.textProps[0];
-    is(inheritProp.name, "color", "color should have been inherited.");
+      let inheritRule = elementStyle.rules[1];
+      is(inheritRule.selectorText, "#test2", "Inherited rule should be the one that includes inheritable properties.");
+      ok(!!inheritRule.inherited, "Rule should consider itself inherited.");
+      is(inheritRule.textProps.length, 1, "Should only display one inherited style");
+      let inheritProp = inheritRule.textProps[0];
+      is(inheritProp.name, "color", "color should have been inherited.");
 
-    styleNode.parentNode.removeChild(styleNode);
-
-    emptyInherit();
+      styleNode.parentNode.removeChild(styleNode);
+      inspector.once("rule-view-refreshed", () => {
+        inspector.selection.setNode(null);
+        inspector.once("inspector-updated", emptyInherit);
+      });
+    });
   });
 }
 
@@ -56,18 +60,22 @@ function emptyInherit()
   let styleNode = addStyle(doc, style);
   doc.body.innerHTML = '<div id="test2"><div id="test1">Styled Node</div></div>';
 
-  inspector.selection.setNode(doc.getElementById("test1"));
-  inspector.once("inspector-updated", () => {
-    let elementStyle = view._elementStyle;
+  inspector.once("rule-view-refreshed", () => {
+    inspector.selection.setNode(doc.getElementById("test1"));
+    inspector.once("inspector-updated", () => {
+      let elementStyle = view._elementStyle;
 
-    is(elementStyle.rules.length, 1, "Should have 1 rule.");
+      is(elementStyle.rules.length, 1, "Should have 1 rule.");
 
-    let elementRule = elementStyle.rules[0];
-    ok(!elementRule.inherited, "Element style attribute should not consider itself inherited.");
+      let elementRule = elementStyle.rules[0];
+      ok(!elementRule.inherited, "Element style attribute should not consider itself inherited.");
 
-    styleNode.parentNode.removeChild(styleNode);
-
-    elementStyleInherit();
+      styleNode.parentNode.removeChild(styleNode);
+      inspector.once("rule-view-refreshed", () => {
+        inspector.selection.setNode(null);
+        inspector.once("inspector-updated", elementStyleInherit);
+      });
+    });
   });
 }
 

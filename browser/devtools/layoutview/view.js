@@ -40,6 +40,8 @@ LayoutView.prototype = {
     if (this.inspector.highlighter) {
       this.inspector.highlighter.on("locked", this.onHighlighterLocked);
     }
+    this.inspector.pageStyle.on("stylesheet-added", this.update);
+    this.inspector.pageStyle.on("stylesheet-removed", this.update);
 
     // Store for the different dimensions of the node.
     // 'selector' refers to the element that holds the value in view.xhtml;
@@ -108,6 +110,10 @@ LayoutView.prototype = {
     }
     if (this.inspector.highlighter) {
       this.inspector.highlighter.off("locked", this.onHighlighterLocked);
+    }
+    if (this.inspector.pageStyle) {
+      this.inspector.pageStyle.off("stylesheet-added", this.update);
+      this.inspector.pageStyle.off("stylesheet-removed", this.update);
     }
     this.sizeHeadingLabel = null;
     this.sizeLabel = null;

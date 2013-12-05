@@ -35,21 +35,11 @@ function test() {
       // there's not better way to do it. See bug 835247).
       setTimeout(setupTest, 500);
     } else {
-      let target = TargetFactory.forTab(gBrowser.selectedTab);
-      gDevTools.showToolbox(target, "inspector").then(function(toolbox) {
-        openFontInspector(toolbox.getCurrentPanel());
+      openFontInspector(aInspector => {
+        inspector = aInspector;
+        viewReady();
       });
     }
-  }
-
-  function openFontInspector(aInspector) {
-    inspector = aInspector;
-
-    info("Inspector open");
-
-    inspector.selection.setNode(doc.body);
-    inspector.sidebar.select("fontinspector");
-    inspector.sidebar.once("fontinspector-ready", viewReady);
   }
 
   function viewReady() {

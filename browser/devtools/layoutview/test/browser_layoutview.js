@@ -64,24 +64,16 @@ function test() {
     node = doc.querySelector("div");
     ok(node, "node found");
 
-    let target = TargetFactory.forTab(gBrowser.selectedTab);
-    gDevTools.showToolbox(target, "inspector").then(function(toolbox) {
-      openLayoutView(toolbox.getCurrentPanel());
-    });
+    openLayoutView(onLayoutViewOpen);
   }
 
-  function openLayoutView(aInspector) {
-    inspector = aInspector;
-
+  function onLayoutViewOpen(aInspector) {
     info("Inspector open");
 
-    inspector.sidebar.select("layoutview");
-    inspector.sidebar.once("layoutview-ready", () => {
-      inspector.selection.setNode(node);
-      inspector.once("inspector-updated", viewReady);
-    });
+    inspector = aInspector;
+    inspector.selection.setNode(node);
+    inspector.once("inspector-updated", viewReady);
   }
-
 
   function viewReady() {
     info("Layout view ready");

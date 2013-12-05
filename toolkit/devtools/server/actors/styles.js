@@ -59,6 +59,23 @@ types.addDictType("matchedselector", {
 var PageStyleActor = protocol.ActorClass({
   typeName: "pagestyle",
 
+  events: {
+    /**
+     * Fired whenever a new style-sheet is added to the document
+     */
+    "stylesheet-added" : {
+      type: "styleSheetAdded"
+    },
+    /**
+     * Fired whenever a style-sheet is removed from the document.
+     * Note that when a style-sheet content is changed, this will result in
+     * both a "stylesheet-added" and "stylesheet-removed" events being sent
+     */
+    "stylesheet-removed" : {
+      type: "styleSheetRemoved"
+    }
+  },
+
   /**
    * Create a PageStyleActor.
    *
@@ -69,16 +86,33 @@ var PageStyleActor = protocol.ActorClass({
    */
   initialize: function(inspector) {
     protocol.Actor.prototype.initialize.call(this, null);
+
+    // The PageStyleActor depends on the inspector and walker
     this.inspector = inspector;
     if (!this.inspector.walker) {
       throw Error("The inspector's WalkerActor must be created before " +
                    "creating a PageStyleActor.");
     }
-    this.walker = inspector.walker;
+    this.walker = this.inspector.walker;
+
     this.cssLogic = new CssLogic;
 
     // Stores the association of DOM objects -> actors
     this.refMap = new Map;
+
+    this._onStyleSheetAdded = () => events.emit(this, "stylesheet-added");
+    this._onStyleSheetRemoved = () => events.emit(this, "stylesheet-removed");
+    // Stores the documents for which stylesheets events are observed
+    this.styleSheetChangesDocs = new Set;
+  },
+
+  destroy: function() {
+    for (let doc of this.styleSheetChangesDocs) {
+      this._unwatchStyleSheetChanges(doc);
+    }
+    this.styleSheetChangesDocs.clear();
+
+    protocol.Actor.prototype.destroy.call(this);
   },
 
   get conn() this.inspector.conn,
@@ -111,6 +145,54 @@ var PageStyleActor = protocol.ActorClass({
     this.refMap.set(sheet, actor);
 
     return actor;
+  },
+
+  /**
+   * Start watching for added/removed stylesheets in a given content document
+   * and fire events to the client when this happens.
+   * Note that when a stylesheet's content is changed, both a removed and added
+   * events will be fired.
+   */
+  watchStyleSheetChanges: method(function(node) {
+    let doc = node.rawNode.ownerDocument;
+
+    if (!this.styleSheetChangesDocs.has(doc)) {
+      // Flag required to get StyleSheet events going
+      doc.styleSheetChangeEventsEnabled = true;
+
+      let eventHandler = doc.defaultView.QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIWebNavigation).QueryInterface(Ci.nsIDocShell)
+        .chromeEventHandler;
+
+      eventHandler.addEventListener("StyleSheetAdded",
+        this._onStyleSheetAdded, true);
+      eventHandler.addEventListener("StyleSheetRemoved",
+        this._onStyleSheetRemoved, true);
+
+      this.styleSheetChangesDocs.add(doc);
+    }
+  }, {
+    request: {
+      node: Arg(0, "domnode")
+    }
+  }),
+
+  _unwatchStyleSheetChanges: function(doc) {
+    // Accessing doc or its window may fail on tab close or navigation.
+    // When that occurs, we want to silently fail as it doesn't matter if this
+    // is not executed
+    try {
+      doc.styleSheetChangeEventsEnabled = true;
+
+      let eventHandler = doc.defaultView.QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIWebNavigation).QueryInterface(Ci.nsIDocShell)
+        .chromeEventHandler;
+
+      eventHandler.removeEventListener("StyleSheetAdded",
+        this._onStyleSheetAdded, true);
+      eventHandler.removeEventListener("StyleSheetRemoved",
+        this._onStyleSheetRemoved, true);
+    } catch (e) {}
   },
 
   /**
@@ -355,8 +437,7 @@ var PageStyleActor = protocol.ActorClass({
    * Helper function for getApplied, adds all the rules from a given
    * element.
    */
-  addElementRules: function(element, inherited, options, rules)
-  {
+  addElementRules: function(element, inherited, options, rules) {
     let elementStyle = this._styleRef(element);
 
     if (!inherited || this._hasInheritedProps(element.style)) {

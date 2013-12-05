@@ -24,20 +24,22 @@ function startTest(aInspector, aRuleView)
   doc.body.innerHTML = "<div id='testid' class='testclass'>Styled Node</div>" +
                        "<div id='testid2'>Styled Node</div>";
 
-  let testElement = doc.getElementById("testid");
-  inspector.selection.setNode(testElement);
-  inspector.once("inspector-updated", () => {
-    is(ruleView.element.querySelectorAll("#noResults").length, 0, "After a highlight, no longer has a no-results element.");
-    inspector.selection.setNode(null);
+  inspector.once("rule-view-refreshed", () => {
+    let testElement = doc.getElementById("testid");
+    inspector.selection.setNode(testElement);
     inspector.once("inspector-updated", () => {
-      is(ruleView.element.querySelectorAll("#noResults").length, 1, "After highlighting null, has a no-results element again.");
-      inspector.selection.setNode(testElement);
+      is(ruleView.element.querySelectorAll("#noResults").length, 0, "After a highlight, no longer has a no-results element.");
+      inspector.selection.setNode(null);
       inspector.once("inspector-updated", () => {
-        let classEditor = ruleView.element.children[2]._ruleEditor;
-        is(classEditor.selectorText.querySelector(".ruleview-selector-matched").textContent, ".testclass", ".textclass should be matched.");
-        is(classEditor.selectorText.querySelector(".ruleview-selector-unmatched").textContent, ".unmatched", ".unmatched should not be matched.");
+        is(ruleView.element.querySelectorAll("#noResults").length, 1, "After highlighting null, has a no-results element again.");
+        inspector.selection.setNode(testElement);
+        inspector.once("inspector-updated", () => {
+          let classEditor = ruleView.element.children[2]._ruleEditor;
+          is(classEditor.selectorText.querySelector(".ruleview-selector-matched").textContent, ".testclass", ".textclass should be matched.");
+          is(classEditor.selectorText.querySelector(".ruleview-selector-unmatched").textContent, ".unmatched", ".unmatched should not be matched.");
 
-        testCancelNew();
+          testCancelNew();
+        });
       });
     });
   });

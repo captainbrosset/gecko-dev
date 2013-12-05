@@ -1892,6 +1892,7 @@ var WalkerActor = protocol.ActorClass({
         type: "newRoot",
         target: this.rootNode.form()
       });
+      events.emit(this, "root-frame-load");
     }
     let frameActor = this._refMap.get(frame);
     if (!frameActor) {
@@ -1954,6 +1955,7 @@ var WalkerActor = protocol.ActorClass({
     }
 
     if (this.rootDoc === doc) {
+      events.emit(this, "root-frame-unload");
       this.rootDoc = null;
       this.rootNode = null;
     }

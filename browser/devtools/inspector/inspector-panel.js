@@ -54,6 +54,8 @@ const LAYOUT_CHANGE_TIMER = 250;
  *      Fired when a property is collapsed in the computed rules view
  * - rule-view-refreshed
  *      Fired when the rule view updates to a new node
+ * - font-inspector-updated
+ *      Fired when the font inspector updates to a new node
  */
 function InspectorPanel(iframeWindow, toolbox) {
   this._toolbox = toolbox;
@@ -414,13 +416,23 @@ InspectorPanel.prototype = {
     }
 
     let selfUpdate = this.updating("inspector-panel");
-    Services.tm.mainThread.dispatch(() => {
-      try {
-        selfUpdate(selection);
-      } catch(ex) {
-        console.error(ex);
-      }
-    }, Ci.nsIThread.DISPATCH_NORMAL);
+
+    // Start watching for stylesheet changes in the new node's document (if any)
+    // so that sidebar panels can update themselves when that happens
+    let styleSheetChangePromise = promise.resolve();
+    if (selection) {
+      styleSheetChangePromise = this.pageStyle.watchStyleSheetChanges(selection);
+    }
+
+    styleSheetChangePromise.then(() => {
+      Services.tm.mainThread.dispatch(() => {
+        try {
+          selfUpdate(selection);
+        } catch(ex) {
+          console.error(ex);
+        }
+      }, Ci.nsIThread.DISPATCH_NORMAL);
+    });
   },
 
   /**

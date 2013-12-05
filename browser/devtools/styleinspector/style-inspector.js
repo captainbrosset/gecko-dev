@@ -85,6 +85,8 @@ function RuleViewTool(aInspector, aWindow, aIFrame)
   if (this.inspector.highlighter) {
     this.inspector.highlighter.on("locked", this._onSelect);
   }
+  this.inspector.pageStyle.on("stylesheet-added", this.refresh);
+  this.inspector.pageStyle.on("stylesheet-removed", this.refresh);
 
   this.onSelect();
 }
@@ -127,6 +129,10 @@ RuleViewTool.prototype = {
     if (this.inspector.highlighter) {
       this.inspector.highlighter.off("locked", this._onSelect);
     }
+    if (this.inspector.pageStyle) {
+      this.inspector.pageStyle.off("stylesheet-added", this.refresh);
+      this.inspector.pageStyle.off("stylesheet-removed", this.refresh);
+    }
 
     this.view.element.removeEventListener("CssRuleViewCSSLinkClicked",
       this._cssLinkHandler);
@@ -165,9 +171,10 @@ function ComputedViewTool(aInspector, aWindow, aIFrame)
   this.refresh = this.refresh.bind(this);
   this.inspector.on("layout-change", this.refresh);
   this.inspector.selection.on("pseudoclass", this.refresh);
+  this.inspector.pageStyle.on("stylesheet-added", this.refresh);
+  this.inspector.pageStyle.on("stylesheet-removed", this.refresh);
 
   this.view.highlight(null);
-
   this.onSelect();
 }
 
@@ -215,6 +222,10 @@ ComputedViewTool.prototype = {
     this.inspector.selection.off("new-node-front", this._onSelect);
     if (this.inspector.highlighter) {
       this.inspector.highlighter.off("locked", this._onSelect);
+    }
+    if (this.inspector.pageStyle) {
+      this.inspector.pageStyle.off("stylesheet-added", this.refresh);
+      this.inspector.pageStyle.off("stylesheet-removed", this.refresh);
     }
 
     this.view.destroy();

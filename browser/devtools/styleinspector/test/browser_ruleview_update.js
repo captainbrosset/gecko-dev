@@ -23,14 +23,15 @@ function startTest(aInspector, aRuleView)
 
   let styleNode = addStyle(doc, style);
   doc.body.innerHTML = '<div id="testid" class="testclass">Styled Node</div>';
+  inspector.once("rule-view-refreshed", () => {
+    testElement = doc.getElementById("testid");
 
-  testElement = doc.getElementById("testid");
+    let elementStyle = 'margin-top: 1px; padding-top: 5px;'
+    testElement.setAttribute("style", elementStyle);
 
-  let elementStyle = 'margin-top: 1px; padding-top: 5px;'
-  testElement.setAttribute("style", elementStyle);
-
-  inspector.selection.setNode(testElement);
-  inspector.once("rule-view-refreshed", testRuleChanges);
+    inspector.selection.setNode(testElement);
+    inspector.once("rule-view-refreshed", testRuleChanges);
+  });
 }
 
 function testRuleChanges()
