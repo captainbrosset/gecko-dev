@@ -280,27 +280,34 @@ var NodeActor = protocol.ActorClass({
 
     // Get the image resize ratio if a maxDim was provided
     let resizeRatio = 1;
-    let imgWidth = isImg ? this.rawNode.naturalWidth : this.rawNode.width;
-    let imgHeight = isImg ? this.rawNode.naturalHeight : this.rawNode.height;
+    let imgWidth = this.rawNode.naturalWidth || this.rawNode.width;
+    let imgHeight = this.rawNode.naturalHeight || this.rawNode.height;
     let imgMax = Math.max(imgWidth, imgHeight);
     if (maxDim && imgMax > maxDim) {
       resizeRatio = maxDim / imgMax;
     }
 
-    // Create a canvas to copy the rawNode into and get the imageData from
-    let canvas = this.rawNode.ownerDocument.createElement("canvas");
-    canvas.width = imgWidth * resizeRatio;
-    canvas.height = imgHeight * resizeRatio;
-    let ctx = canvas.getContext("2d");
-
-    // Copy the rawNode image or canvas in the new canvas and extract data
+    // Extract the image data
     let imageData;
-    // This may fail if the image is missing
-    try {
-      ctx.drawImage(this.rawNode, 0, 0, canvas.width, canvas.height);
-      imageData = canvas.toDataURL("image/png");
-    } catch (e) {
-      imageData = "";
+    // The image may already be a data-uri, in which case, save ourselves the
+    // trouble of converting via the canvas.drawImage.toDataURL method
+    if (isImg && this.rawNode.src.startsWith("data:")) {
+      imageData = this.rawNode.src;
+    } else {
+      // Create a canvas to copy the rawNode into and get the imageData from
+      let canvas = this.rawNode.ownerDocument.createElement("canvas");
+      canvas.width = imgWidth * resizeRatio;
+      canvas.height = imgHeight * resizeRatio;
+      let ctx = canvas.getContext("2d");
+
+      // Copy the rawNode image or canvas in the new canvas and extract data
+      // This may fail if the image is missing or has no width/height
+      try {
+        ctx.drawImage(this.rawNode, 0, 0, canvas.width, canvas.height);
+        imageData = canvas.toDataURL("image/png");
+      } catch (e) {
+        imageData = "";
+      }
     }
 
     return {
@@ -308,8 +315,6 @@ var NodeActor = protocol.ActorClass({
       size: {
         naturalWidth: imgWidth,
         naturalHeight: imgHeight,
-        width: canvas.width,
-        height: canvas.height,
         resized: resizeRatio !== 1
       }
     }

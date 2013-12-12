@@ -512,6 +512,12 @@ Tooltip.prototype = {
     // Display the image
     let image = this.doc.createElement("image");
     image.setAttribute("src", imageUrl);
+    if (options.naturalWidth) {
+      image.setAttribute("width", options.naturalWidth);
+    }
+    if (options.naturalHeight) {
+      image.setAttribute("height", options.naturalHeight);
+    }
     if (options.maxDim) {
       image.style.maxWidth = options.maxDim + "px";
       image.style.maxHeight = options.maxDim + "px";
