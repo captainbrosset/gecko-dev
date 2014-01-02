@@ -62,6 +62,7 @@ const {Unknown} = require("sdk/platform/xpcom");
 const {Class} = require("sdk/core/heritage");
 const {PageStyleActor} = require("devtools/server/actors/styles");
 const {HighlighterActor} = require("devtools/server/actors/highlighter");
+const {ObjectActor} = require("devtools/server/actors/object");
 
 const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
 const HIDDEN_CLASS = "__fx-devtools-hide-shortcut__";
@@ -71,6 +72,8 @@ HELPER_SHEET += ":-moz-devtools-highlighted { outline: 2px dashed #F06!important
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/devtools/LayoutHelpers.jsm");
+Cu.import("resource://gre/modules/jsdebugger.jsm");
+addDebuggerToGlobal(this);
 
 loader.lazyGetter(this, "DOMParser", function() {
   return Cc["@mozilla.org/xmlextras/domparser;1"].createInstance(Ci.nsIDOMParser);
@@ -863,6 +866,9 @@ var WalkerActor = protocol.ActorClass({
    */
   initialize: function(conn, tabActor, options) {
     protocol.Actor.prototype.initialize.call(this, conn);
+
+    this.conn.addActorPool(this);
+
     this.tabActor = tabActor;
     this.rootWin = tabActor.window;
     this.rootDoc = this.rootWin.document;
@@ -871,6 +877,8 @@ var WalkerActor = protocol.ActorClass({
     this._activePseudoClassLocks = new Set();
 
     this.layoutHelpers = new LayoutHelpers(this.rootWin);
+
+    this.dbg = new Debugger();
 
     // Nodes which have been removed from the client's known
     // ownership tree are considered "orphaned", and stored in
@@ -910,10 +918,17 @@ var WalkerActor = protocol.ActorClass({
 
   destroy: function() {
     this._hoveredNode = null;
+    this.tabActor = null;
     this.clearPseudoClassLocks();
     this._activePseudoClassLocks = null;
     this.progressListener.destroy();
     this.rootDoc = null;
+
+    this.dbg.enabled = false;
+    this.dbg = null;
+
+    this.conn.removeActorPool(this);
+
     events.emit(this, "destroyed");
     protocol.Actor.prototype.destroy.call(this);
   },
@@ -1924,6 +1939,48 @@ var WalkerActor = protocol.ActorClass({
     // Need to force a release of this node, because those nodes can't
     // be accessed anymore.
     this.releaseNode(documentActor, { force: true });
+  },
+
+  /**
+   * Get a node's actorGrip from the debugger, for display in the variableView
+   * widget
+   */
+  getActorGripForNode: method(function(node) {
+    let dbgGlobal = this.dbg.makeGlobalObjectReference(this.rootWin);
+    let value = dbgGlobal.makeDebuggeeValue(node.rawNode);
+    return this.createValueGrip(value);
+  }, {
+    request: {
+      node: Arg(0, "domnode")
+    },
+    response: {
+      value: RetVal("json")
+    }
+  }),
+
+  // Making the walker act as a ThreadActor so it can create node value grips.
+  // This is somewhat similar to what the webconsole actor does, except that
+  // the ThreadActor class isn't globally available here.
+  // FIXME: the ThreadActor should be moved to its own separate module so it
+  // can be required here
+  createValueGrip: function(value) {
+    return this.tabActor.threadActor.createValueGrip.call(this, value, this);
+  },
+  createEnvironmentActor: function(environment) {
+    return this.tabActor.threadActor.createEnvironmentActor.call(this, environment, this);
+  },
+  _stringIsLong: function(string) {
+    return this.tabActor.threadActor._stringIsLong.call(this, string);
+  },
+
+  objectGrip: function(aObject) {
+    let actor = new ObjectActor(aObject, this);
+    this.addActor(actor);
+    return actor.grip();
+  },
+
+  addActor: function(actor) {
+    this.manage(actor);
   }
 });
 

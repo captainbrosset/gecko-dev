@@ -12,7 +12,8 @@ let Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-let devtools = Cu.import("resource://gre/modules/devtools/Loader.jsm", {}).devtools;
+let {devtools} = Cu.import("resource://gre/modules/devtools/Loader.jsm", {});
+let {ObjectActor} = devtools.require("devtools/server/actors/object");
 
 XPCOMUtils.defineLazyModuleGetter(this, "Services",
                                   "resource://gre/modules/Services.jsm");
@@ -260,8 +261,6 @@ WebConsoleActor.prototype =
 
   _createValueGrip: ThreadActor.prototype.createValueGrip,
   _stringIsLong: ThreadActor.prototype._stringIsLong,
-  _findProtoChain: ThreadActor.prototype._findProtoChain,
-  _removeFromProtoChain: ThreadActor.prototype._removeFromProtoChain,
 
   /**
    * Destroy the current WebConsoleActor instance.

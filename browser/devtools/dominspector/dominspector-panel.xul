@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!DOCTYPE window>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/widgets.css" type="text/css"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+
+<xul:window xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns="http://www.w3.org/1999/xhtml"
+        id="dom-inspector-chrome-window"
+        title="DOM">
+
+  <script type="application/javascript;version=1.8"
+          src="chrome://browser/content/devtools/theme-switching.js"/>
+  <script type="application/javascript;version=1.8"
+          src="chrome://browser/content/devtools/dominspector.js"/>
+  <xul:script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+
+  <xul:box id="variable-view"
+       class="devtools-responsive-container theme-body"
+       flex="1"/>
+
+  <script type="application/javascript;version=1.8">
+    window.setPanel = function(panel) {
+      let root = window.document.getElementById("variable-view");
+      window.domInspector = new DomInspector(panel, root);
+    }
+
+    window.onunload = function() {
+      if (window.domInspector) {
+        window.domInspector.destroy();
+        window.domInspector = null;
+      }
+    }
+  </script>
+</xul:window>

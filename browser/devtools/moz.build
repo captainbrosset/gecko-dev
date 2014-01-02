@@ -8,6 +8,7 @@ DIRS += [
     'app-manager',
     'commandline',
     'debugger',
+    'dominspector',
     'fontinspector',
     'framework',
     'inspector',

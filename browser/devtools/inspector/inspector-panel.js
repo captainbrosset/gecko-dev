@@ -312,6 +312,10 @@ InspectorPanel.prototype = {
                         "chrome://browser/content/devtools/layoutview/view.xhtml",
                         "layoutview" == defaultTab);
 
+    this.sidebar.addTab("dominspector",
+                        "chrome://browser/content/devtools/dominspector-panel.xul",
+                        "dominspector" == defaultTab);
+
     let ruleViewTab = this.sidebar.getTab("ruleview");
 
     this.sidebar.show();

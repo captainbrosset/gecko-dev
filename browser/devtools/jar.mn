@@ -28,6 +28,8 @@ browser.jar:
     content/browser/devtools/fontinspector/font-inspector.js           (fontinspector/font-inspector.js)
     content/browser/devtools/fontinspector/font-inspector.xhtml        (fontinspector/font-inspector.xhtml)
     content/browser/devtools/fontinspector/font-inspector.css          (fontinspector/font-inspector.css)
+    content/browser/devtools/dominspector-panel.xul                    (dominspector/dominspector-panel.xul)
+    content/browser/devtools/dominspector.js                           (dominspector/dominspector.js)
     content/browser/devtools/codemirror/codemirror.js                  (sourceeditor/codemirror/codemirror.js)
     content/browser/devtools/codemirror/codemirror.css                 (sourceeditor/codemirror/codemirror.css)
     content/browser/devtools/codemirror/javascript.js                  (sourceeditor/codemirror/javascript.js)

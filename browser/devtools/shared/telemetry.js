@@ -103,6 +103,11 @@ Telemetry.prototype = {
       userHistogram: "DEVTOOLS_FONTINSPECTOR_OPENED_PER_USER_FLAG",
       timerHistogram: "DEVTOOLS_FONTINSPECTOR_TIME_ACTIVE_SECONDS"
     },
+    dominspector: {
+      histogram: "DEVTOOLS_DOMINSPECTOR_OPENED_BOOLEAN",
+      userHistogram: "DEVTOOLS_DOMINSPECTOR_OPENED_PER_USER_FLAG",
+      timerHistogram: "DEVTOOLS_DOMINSPECTOR_TIME_ACTIVE_SECONDS"
+    },
     jsdebugger: {
       histogram: "DEVTOOLS_JSDEBUGGER_OPENED_BOOLEAN",
       userHistogram: "DEVTOOLS_JSDEBUGGER_OPENED_PER_USER_FLAG",
