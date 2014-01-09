@@ -4,6 +4,6 @@
 
 %include ../../shared/devtools/debugger.inc.css
 
-.devtools-sidebar-tabs > tabs > tab {
+.devtools-sidebar-tabs tabs > tab {
   min-height: 24px !important;
 }

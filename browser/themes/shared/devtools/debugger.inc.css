@@ -506,7 +506,7 @@
 
 /* Toolbar controls */
 
-.devtools-sidebar-tabs > tabs > tab {
+.devtools-sidebar-tabs tabs > tab {
   min-height: 1em !important;
   padding: 0 !important;
 }

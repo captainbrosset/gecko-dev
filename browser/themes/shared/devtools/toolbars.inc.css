@@ -219,7 +219,8 @@
   border: 0;
 }
 
-.devtools-sidebar-tabs > tabs {
+.devtools-sidebar-tabs tabs,
+.devtools-sidebar-alltabs {
   -moz-appearance: none;
   position: static;
   font: inherit;
@@ -233,12 +234,20 @@
   overflow: hidden;
 }
 
-.devtools-sidebar-tabs > tabs > .tabs-right,
-.devtools-sidebar-tabs > tabs > .tabs-left {
+.devtools-sidebar-alltabs {
+  margin: 0;
+}
+
+.devtools-sidebar-alltabs dropmarker {
   display: none;
 }
 
-.devtools-sidebar-tabs > tabs > tab {
+.devtools-sidebar-tabs tabs > .tabs-right,
+.devtools-sidebar-tabs tabs > .tabs-left {
+  display: none;
+}
+
+.devtools-sidebar-tabs tabs > tab {
   -moz-appearance: none;
   /* We want to match the height of a toolbar with a toolbarbutton
    * First, we need to replicated the padding of toolbar (4px),
@@ -261,17 +270,17 @@
   -moz-margin-start: -1px;
 }
 
-.devtools-sidebar-tabs > tabs > tab:first-of-type {
+.devtools-sidebar-tabs tabs > tab:first-of-type {
   -moz-margin-start: -3px;
 }
 
-.devtools-sidebar-tabs > tabs > tab {
+.devtools-sidebar-tabs tabs > tab {
   background-size: calc(100% - 1px) 100%, 1px 100%;
   background-repeat: no-repeat;
   background-position: 1px, 0;
 }
 
-.devtools-sidebar-tabs > tabs > tab:not(:last-of-type) {
+.devtools-sidebar-tabs tabs > tab:not(:last-of-type) {
   background-size: calc(100% - 2px) 100%, 1px 100%;
 }
 
@@ -279,41 +288,47 @@
   background-position: calc(100% - 1px), 100%;
 }
 
-.devtools-sidebar-tabs > tabs > tab {
+.devtools-sidebar-tabs toolbar {
+  background-color: transparent;
   background-color: transparent;
   background-image: linear-gradient(transparent, transparent), @smallSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab:hover {
+.devtools-sidebar-tabs tabs > tab {
+  background-color: transparent;
+  background-image: linear-gradient(transparent, transparent), @smallSeparator@;
+}
+
+.devtools-sidebar-tabs tabs > tab:hover {
   background-image: linear-gradient(hsla(206,37%,4%,.2), hsla(206,37%,4%,.2)), @smallSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab:hover:active {
+.devtools-sidebar-tabs tabs > tab:hover:active {
   background-image: linear-gradient(hsla(206,37%,4%,.4), hsla(206,37%,4%,.4)), @smallSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected] + tab {
+.devtools-sidebar-tabs tabs > tab[selected] + tab {
   background-image: linear-gradient(transparent, transparent), @solidSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected] + tab:hover {
+.devtools-sidebar-tabs tabs > tab[selected] + tab:hover {
   background-image: linear-gradient(hsla(206,37%,4%,.2), hsla(206,37%,4%,.2)), @solidSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected] + tab:hover:active {
+.devtools-sidebar-tabs tabs > tab[selected] + tab:hover:active {
   background-image: linear-gradient(hsla(206,37%,4%,.4), hsla(206,37%,4%,.4)), @solidSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected] {
+.devtools-sidebar-tabs tabs > tab[selected] {
   color: #f5f7fa;
   background-image: linear-gradient(#1d4f73, #1d4f73), @solidSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected]:hover {
+.devtools-sidebar-tabs tabs > tab[selected]:hover {
   background-image: linear-gradient(#274f64, #274f64), @solidSeparator@;
 }
 
-.devtools-sidebar-tabs > tabs > tab[selected]:hover:active {
+.devtools-sidebar-tabs tabs > tab[selected]:hover:active {
   background-image: linear-gradient(#1f3e4f, #1f3e4f), @solidSeparator@;
 }
 

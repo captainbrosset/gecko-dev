@@ -284,7 +284,9 @@ InspectorPanel.prototype = {
    */
   setupSidebar: function InspectorPanel_setupSidebar() {
     let tabbox = this.panelDoc.querySelector("#inspector-sidebar");
-    this.sidebar = new ToolSidebar(tabbox, this, "inspector");
+    this.sidebar = new ToolSidebar(tabbox, this, "inspector", {
+      showAllTabsMenu: true
+    });
 
     let defaultTab = Services.prefs.getCharPref("devtools.inspector.activeSidebar");
 
@@ -302,12 +304,6 @@ InspectorPanel.prototype = {
                         "chrome://browser/content/devtools/computedview.xhtml",
                         "computedview" == defaultTab);
 
-    if (Services.prefs.getBoolPref("devtools.fontinspector.enabled") && !this.target.isRemote) {
-      this.sidebar.addTab("fontinspector",
-                          "chrome://browser/content/devtools/fontinspector/font-inspector.xhtml",
-                          "fontinspector" == defaultTab);
-    }
-
     this.sidebar.addTab("layoutview",
                         "chrome://browser/content/devtools/layoutview/view.xhtml",
                         "layoutview" == defaultTab);
@@ -315,6 +311,12 @@ InspectorPanel.prototype = {
     this.sidebar.addTab("dominspector",
                         "chrome://browser/content/devtools/dominspector-panel.xul",
                         "dominspector" == defaultTab);
+
+    if (Services.prefs.getBoolPref("devtools.fontinspector.enabled") && !this.target.isRemote) {
+      this.sidebar.addTab("fontinspector",
+                          "chrome://browser/content/devtools/fontinspector/font-inspector.xhtml",
+                          "fontinspector" == defaultTab);
+    }
 
     let ruleViewTab = this.sidebar.getTab("ruleview");
 

@@ -24,17 +24,19 @@ const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
  *  Related ToolPanel instance;
  * @param {String} uid
  *  Unique ID
- * @param {Boolean} showTabstripe
- *  Show the tabs.
+ * @param {Object} options
+ *  - hideTabstripe: Should the tabs be hidden. Defaults to false
+ *  - showAllTabsMenu: Should a drop-down menu be displayed in case tabs
+ *    become hidden. Defaults to false.
  */
-function ToolSidebar(tabbox, panel, uid, showTabstripe=true)
-{
+function ToolSidebar(tabbox, panel, uid, options={}) {
   EventEmitter.decorate(this);
 
   this._tabbox = tabbox;
   this._uid = uid;
   this._panelDoc = this._tabbox.ownerDocument;
   this._toolPanel = panel;
+  this._options = options;
 
   try {
     this._width = Services.prefs.getIntPref("devtools.toolsidebar-width." + this._uid);
@@ -46,14 +48,47 @@ function ToolSidebar(tabbox, panel, uid, showTabstripe=true)
 
   this._tabs = new Map();
 
-  if (!showTabstripe) {
+  if (this._options.hideTabstripe) {
     this._tabbox.setAttribute("hidetabs", "true");
+  }
+
+  if (this._options.showAllTabsMenu) {
+    this.addHiddenTabsMenu();
   }
 }
 
 exports.ToolSidebar = ToolSidebar;
 
 ToolSidebar.prototype = {
+  /**
+   * Add a "..." button at the end of the tabstripe that toggles a dropdown
+   * menu containing the list of hidden tabs if any become hidden due to lack
+   * of room.
+   */
+  addHiddenTabsMenu: function ToolSidebar_addHiddenTabsMenu() {
+    if (!this._allTabsMenu) {
+      // Create a toolbar and insert it first in the tabbox
+      let allTabsToolbar = this._panelDoc.createElementNS(XULNS, "toolbar");
+      this._tabbox.insertBefore(allTabsToolbar, this._tabbox.tabs);
+
+      // Move the tabs inside and make them flex
+      allTabsToolbar.appendChild(this._tabbox.tabs);
+      this._tabbox.tabs.setAttribute("flex", "1");
+      this._tabbox.tabs.setAttribute("style", "overflow:hidden"); // FIXME
+
+      // Create the dropdown menu next to the tabs
+      let toolbarButton = this._panelDoc.createElementNS(XULNS, "toolbarbutton");
+      toolbarButton.setAttribute("class", "devtools-sidebar-alltabs");
+      toolbarButton.setAttribute("type", "menu");
+      toolbarButton.setAttribute("label", "..."); // FIXME
+      toolbarButton.setAttribute("tooltiptext", "other tools"); // FIXME
+      allTabsToolbar.appendChild(toolbarButton);
+
+      this._allTabsMenu = this._panelDoc.createElementNS(XULNS, "menupopup");
+      toolbarButton.appendChild(this._allTabsMenu);
+    }
+  },
+
   /**
    * Register a tab. A tab is a document.
    * The document must have a title, which will be used as the name of the tab.
@@ -68,11 +103,26 @@ ToolSidebar.prototype = {
     iframe.setAttribute("src", url);
     iframe.tooltip = "aHTMLTooltip";
 
-    let tab = this._tabbox.tabs.appendItem();
+    // Creating the tab and adding it to the tabbox
+    let tab = this._panelDoc.createElementNS(XULNS, "tab");
+    this._tabbox.tabs.appendChild(tab);
     tab.setAttribute("label", ""); // Avoid showing "undefined" while the tab is loading
 
+    // Adding the tab to the alltabs menu if there is one
+    let menuItem;
+    if (this._allTabsMenu) {
+      menuItem = this._panelDoc.createElementNS(XULNS, "menuitem");
+      menuItem.setAttribute("label", "");
+      this._allTabsMenu.appendChild(menuItem);
+      menuItem.addEventListener("click", () => this.select(id), false);
+    }
+
     let onIFrameLoaded = function() {
-      tab.setAttribute("label", iframe.contentDocument.title);
+      let label = iframe.contentDocument.title;
+
+      tab.setAttribute("label", label);
+      menuItem && menuItem.setAttribute("label", label);
+
       iframe.removeEventListener("load", onIFrameLoaded, true);
       if ("setPanel" in iframe.contentWindow) {
         iframe.contentWindow.setPanel(this._toolPanel, iframe);
