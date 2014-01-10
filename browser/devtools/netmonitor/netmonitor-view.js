@@ -5,6 +5,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 "use strict";
 
+Cu.import("resource://gre/modules/devtools/Loader.jsm");
+// loader.lazyGetter(this, "ToolSidebar", () => require("devtools/framework/sidebar").ToolSidebar);
+let {ToolSidebar} = devtools.require("devtools/framework/sidebar");
+
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 const EPSILON = 0.001;
 const SOURCE_SYNTAX_HIGHLIGHT_MAX_FILE_SIZE = 102400; // 100 KB in bytes
@@ -1563,6 +1567,10 @@ NetworkDetailsView.prototype = {
     dumpn("Initializing the NetworkDetailsView");
 
     this.widget = $("#event-details-pane");
+    this.sidebar = new ToolSidebar(this.widget, this, "netmonitor", {
+      disableTelemetry: true,
+      showAllTabsMenu: true
+    });
 
     this._headers = new VariablesView($("#all-headers"),
       Heritage.extend(GENERIC_VARIABLES_VIEW_SETTINGS, {
@@ -1602,6 +1610,7 @@ NetworkDetailsView.prototype = {
    */
   destroy: function() {
     dumpn("Destroying the NetworkDetailsView");
+    this.sidebar.destroy();
   },
 
   /**
